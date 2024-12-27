@@ -4,11 +4,9 @@ import Map from 'ol/Map.js';
 import View from 'ol/View.js';
 import OSM from 'ol/source/OSM.js';
 import TileLayer from 'ol/layer/Tile.js';
-import { useEffect } from 'react';
-import { StmRouter } from '../_stm/StmRouter';
-import { GetServerSideProps } from 'next';
 
-export default function TransitMap(props: { vehiclePositions: string }) {
+
+export default function TransitMap(props: { vehiclePositions: any }) {
     // useEffect(() => {
     //     new Map({
     //         layers: [new TileLayer({ source: new OSM() })],

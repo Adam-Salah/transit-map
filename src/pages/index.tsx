@@ -9,10 +9,10 @@ export default function Page({
 }
 
 export const getServerSideProps = (async () =>{
-    const vehiclePositions = await StmRouter.vehiclePositions;
+    const vehiclePositions = await StmRouter.instance.vehiclePositions;
     return {
         props: {
-            vehiclePositions: vehiclePositions,
+            vehiclePositions: JSON.stringify(vehiclePositions),
         },
     };
-}) satisfies GetServerSideProps<{ vehiclePositions: string }>;
+}) satisfies GetServerSideProps<{ vehiclePositions: any }>;
