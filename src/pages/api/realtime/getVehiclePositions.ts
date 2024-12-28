@@ -1,4 +1,4 @@
-import { StmRouter } from '@/app/_stm/StmRouter';
+import { StmRouter } from '@/app/lib/StmRouter';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 type ResponseData = {

@@ -63,8 +63,8 @@ export default function TransitMap() {
             });
             setMarkers(tempMarkers);
             if (firstTime.current) {
-                firstTime.current = false;
                 forceUpdate();
+                firstTime.current = false;
             }
         }
     }, [vehiclePositions]);
