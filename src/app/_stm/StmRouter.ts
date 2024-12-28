@@ -3,6 +3,14 @@ import GtfsRealtimeBindings from 'gtfs-realtime-bindings';
 const _baseUrl: string = 'https://api.stm.info/pub/od/gtfs-rt/ic/v2/';
 const _apiKey: string = process.env.STM_KEY!;
 
+export interface VehiclePosition {
+    latitude: number;
+    longitude: number;
+    speed: number;
+    currentStatus: string; 
+    occupancyStatus: string;
+}
+
 export class StmRouter {
     private static _instance: StmRouter;
 
@@ -50,7 +58,7 @@ export class StmRouter {
                     GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
                         data
                     );
-                console.log('aaaaaaaaa');
+                console.log('STM data retrieved');
                 this._vehiclePositions = this._parseData(decodedData);
             } catch (err) {
                 console.log(
@@ -70,7 +78,7 @@ export class StmRouter {
 
     private _parseData(
         decodedData: GtfsRealtimeBindings.transit_realtime.FeedMessage
-    ): any {
+    ): VehiclePosition[] {
         let data: any = [];
         decodedData.entity.forEach((entity) => {
             if (entity.vehicle) {
