@@ -1,6 +1,7 @@
+import GtfsRealtimeBindings from 'gtfs-realtime-bindings';
+
 const _baseUrl: string = 'https://api.stm.info/pub/od/gtfs-rt/ic/v2/';
 const _apiKey: string = process.env.STM_KEY!;
-import GtfsRealtimeBindings from 'gtfs-realtime-bindings';
 
 export class StmRouter {
     private static _instance: StmRouter;
@@ -10,7 +11,6 @@ export class StmRouter {
     private _timer;
 
     private constructor() {
-        this._vehiclePositions = 'Empty Vehicle Positions';
         this._getVehiclePositions();
         this._timer = setInterval(() => {
             this._getVehiclePositions();
@@ -41,6 +41,7 @@ export class StmRouter {
                 if (done) {
                     break;
                 }
+
                 buffers.push(value);
             }
             const data = Buffer.concat(buffers);
@@ -49,7 +50,7 @@ export class StmRouter {
                     GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
                         data
                     );
-                console.log(decodedData);
+                    console.log('aaaaaaaaa')
                 this._vehiclePositions = decodedData;
             } catch (err) {
                 console.log(
@@ -67,15 +68,15 @@ export class StmRouter {
         }
     }
 
-    get vehiclePositions() {
+    public get vehiclePositions() {
         return this._vehiclePositions;
     }
 
-    public static get instance(): StmRouter {
+    public static getInstance(): StmRouter {
         if (!this._instance) {
             this._instance = new StmRouter();
+            console.log('StmRouter instance created')
         }
-
         return this._instance;
     }
 }
