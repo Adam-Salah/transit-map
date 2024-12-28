@@ -6,7 +6,7 @@ const _apiKey: string = process.env.STM_KEY!;
 export class StmRouter {
     private static _instance: StmRouter;
 
-    private _vehiclePositions: any;
+    private _vehiclePositions: any[] = [];
 
     private _timer;
 
@@ -50,8 +50,8 @@ export class StmRouter {
                     GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
                         data
                     );
-                    console.log('aaaaaaaaa')
-                this._vehiclePositions = decodedData;
+                console.log('aaaaaaaaa');
+                this._vehiclePositions = this._parseData(decodedData);
             } catch (err) {
                 console.log(
                     'StmRouter.getVehiclePositions: Could not decode protobuf data\n' +
@@ -68,6 +68,25 @@ export class StmRouter {
         }
     }
 
+    private _parseData(
+        decodedData: GtfsRealtimeBindings.transit_realtime.FeedMessage
+    ): any {
+        let data: any = [];
+        decodedData.entity.forEach((entity) => {
+            if (entity.vehicle) {
+                const vehiclePosition = {
+                    latitude: entity.vehicle.position?.latitude,
+                    longitude: entity.vehicle.position?.longitude,
+                    speed: entity.vehicle.position?.speed,
+                    currentStatus: entity.vehicle.currentStatus,
+                    occupancyStatus: entity.vehicle.occupancyStatus,
+                };
+                data.push(vehiclePosition);
+            }
+        });
+        return data;
+    }
+
     public get vehiclePositions() {
         return this._vehiclePositions;
     }
@@ -75,7 +94,7 @@ export class StmRouter {
     public static getInstance(): StmRouter {
         if (!this._instance) {
             this._instance = new StmRouter();
-            console.log('StmRouter instance created')
+            console.log('StmRouter instance created');
         }
         return this._instance;
     }
