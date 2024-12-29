@@ -4,7 +4,7 @@ import Map from 'ol/Map.js';
 import View from 'ol/View.js';
 import OSM from 'ol/source/OSM.js';
 import TileLayer from 'ol/layer/Tile.js';
-import { use, useEffect, useReducer, useRef, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import LayerVector from 'ol/layer/Vector';
 import SourceVector from 'ol/source/Vector';
 import { Point } from 'ol/geom';
@@ -13,28 +13,15 @@ import { Feature } from 'ol';
 import Style from 'ol/style/Style';
 import Circle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
-import { VehiclePosition } from '../_stm/StmRouter';
+import { VehicleInfo } from '../lib/StmRouter';
 
-export default function TransitMap() {
-    const [vehiclePositions, setVehiclePositions] = useState<VehiclePosition[]>();
+export default function TransitMap(props: { vehicleData: VehicleInfo[] }) {
     const [map, setMap] = useState<Map>();
     const [markers, setMarkers] = useState<LayerVector[]>();
 
     const firstTime = useRef(true);
 
-    const [, forceUpdate] = useReducer(x => x + 1, 0);
-
-    useEffect(() => {
-        fetch(process.env.REACT_APP_SERVER_URL + '/api/realtime/getVehiclePositions')
-            .then((response) => response.json())
-            .then((data) => setVehiclePositions(data.vehiclePositions));
-        const interval = setInterval(() => {
-            fetch(process.env.REACT_APP_SERVER_URL + '/api/realtime/getVehiclePositions')
-                .then((response) => response.json())
-                .then((data) => setVehiclePositions(data.vehiclePositions));
-        }, 5000);
-        return () => clearInterval(interval);
-    }, []);
+    const [, forceUpdate] = useReducer((x) => x + 1, 0);
 
     useEffect(() => {
         setMap(
@@ -46,18 +33,19 @@ export default function TransitMap() {
                 }),
                 target: 'map',
             })
-
         );
     }, []);
-    
+
+    let select;
+
     useEffect(() => {
-        if (vehiclePositions && map) {
+        if (props.vehicleData && map) {
             if (markers) {
                 markers.forEach((marker) => {
                     map.removeLayer(marker);
                 });
             }
-            const tempMarkers = createMarkers(vehiclePositions);
+            const tempMarkers = createMarkers(props.vehicleData);
             tempMarkers.forEach((tempMarker) => {
                 map.addLayer(tempMarker);
             });
@@ -67,34 +55,48 @@ export default function TransitMap() {
                 firstTime.current = false;
             }
         }
-    }, [vehiclePositions]);
+    }, [props.vehicleData]);
     return <div id='map' style={{ width: '100%', height: 900 }} />;
 }
 
-const pointFill = new Fill({
-    color: 'rgba(0,0,255,1)',
-});
-
-function createMarkers(vehiclePositions: VehiclePosition[]) {
+function createMarkers(vehicleData: VehicleInfo[]) {
     const tempMarkers: LayerVector[] = [];
-    vehiclePositions.forEach((vehiclePosition) => {
+    vehicleData.forEach((vehicle) => {
         const marker = new LayerVector({
             source: new SourceVector({
                 features: [
                     new Feature({
-                        geometry: new Point(fromLonLat([vehiclePosition.longitude, vehiclePosition.latitude])),
+                        geometry: new Point(fromLonLat([vehicle.longitude, vehicle.latitude])),
                     }),
                 ],
             }),
-            style: new Style({
-                image: new Circle({
-                    fill: pointFill,
-                    radius: 5,
-                }),
-                fill: pointFill,
-            }),
+            style: markerStyle,
         });
         tempMarkers.push(marker);
     });
     return tempMarkers;
 }
+
+const markerStyle = new Style({
+    image: new Circle({
+        fill: new Fill({
+            color: 'rgba(0,0,255,1)',
+        }),
+        radius: 5,
+    }),
+    fill: new Fill({
+        color: 'rgba(0,0,255,1)',
+    }),
+});
+
+const markerSelectedStyle = new Style({
+    image: new Circle({
+        fill: new Fill({
+            color: 'rgba(255,0,0,1)',
+        }),
+        radius: 5,
+    }),
+    fill: new Fill({
+        color: 'rgba(255,0,0,1)',
+    }),
+});
