@@ -4,7 +4,7 @@ import Map from 'ol/Map.js';
 import View from 'ol/View.js';
 import OSM from 'ol/source/OSM.js';
 import TileLayer from 'ol/layer/Tile.js';
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { Dispatch, SetStateAction, use, useEffect, useReducer, useRef, useState } from 'react';
 import LayerVector from 'ol/layer/Vector';
 import SourceVector from 'ol/source/Vector';
 import { Point } from 'ol/geom';
@@ -15,9 +15,13 @@ import Circle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
 import { VehicleInfo } from '../lib/StmRouter';
 
-export default function TransitMap(props: { vehicleData: VehicleInfo[] }) {
+export default function TransitMap(props: {
+    vehicleData: VehicleInfo[];
+    setSelectedVehicle: Dispatch<SetStateAction<VehicleInfo | undefined>>;
+}) {
     const [map, setMap] = useState<Map>();
     const [markers, setMarkers] = useState<LayerVector[]>();
+    const [selectedVehicleId, setSelectedVehicleId] = useState<string>();
 
     const firstTime = useRef(true);
 
@@ -36,8 +40,6 @@ export default function TransitMap(props: { vehicleData: VehicleInfo[] }) {
         );
     }, []);
 
-    let select;
-
     useEffect(() => {
         if (props.vehicleData && map) {
             if (markers) {
@@ -45,7 +47,7 @@ export default function TransitMap(props: { vehicleData: VehicleInfo[] }) {
                     map.removeLayer(marker);
                 });
             }
-            const tempMarkers = createMarkers(props.vehicleData);
+            const tempMarkers = createMarkers(props.vehicleData, selectedVehicleId);
             tempMarkers.forEach((tempMarker) => {
                 map.addLayer(tempMarker);
             });
@@ -56,25 +58,74 @@ export default function TransitMap(props: { vehicleData: VehicleInfo[] }) {
             }
         }
     }, [props.vehicleData]);
+
+    useEffect(() => {
+        if (map) {
+            map.on('click', (evt) => {
+                if (map) {
+                    let feature = map.forEachFeatureAtPixel(evt.pixel, (feat) => {
+                        return feat;
+                    });
+                    if (feature && feature.get('type') == 'marker') {
+                        let vehicleId: string = feature.get('vehicleId');
+                        setSelectedVehicleId(vehicleId);
+                        props.setSelectedVehicle(feature.get('vehicle'));
+                    }
+                }
+            });
+        }
+    }, [map]);
+
+    useEffect(() => {
+        markers?.forEach((marker) => {
+            if (marker.getSource()?.getFeatures()[0].get('vehicleId') === selectedVehicleId) {
+                marker.setStyle(markerSelectedStyle);
+            } else {
+                marker.setStyle(markerStyle);
+            }
+        });
+    }, [selectedVehicleId]);
+
     return <div id='map' style={{ width: '100%', height: 900 }} />;
 }
 
-function createMarkers(vehicleData: VehicleInfo[]) {
+function createMarkers(vehicleData: VehicleInfo[], selectedVehicleId: string | undefined) {
     const tempMarkers: LayerVector[] = [];
-    vehicleData.forEach((vehicle) => {
-        const marker = new LayerVector({
-            source: new SourceVector({
-                features: [
-                    new Feature({
-                        geometry: new Point(fromLonLat([vehicle.longitude, vehicle.latitude])),
-                    }),
-                ],
-            }),
-            style: markerStyle,
+    let style: Style;
+    if (selectedVehicleId) {
+        vehicleData.forEach((vehicle) => {
+            if (vehicle.vehicleId === selectedVehicleId) {
+                style = markerSelectedStyle;
+            } else {
+                style = markerStyle;
+            }
+            let marker: LayerVector = createMarker(vehicle, style);
+            tempMarkers.push(marker);
         });
-        tempMarkers.push(marker);
-    });
+    } else {
+        vehicleData.forEach((vehicle) => {
+            let marker = createMarker(vehicle, markerStyle);
+            tempMarkers.push(marker);
+        });
+    }
     return tempMarkers;
+}
+
+function createMarker(vehicle: VehicleInfo, markerStyle: Style) {
+    const marker = new LayerVector({
+        source: new SourceVector({
+            features: [
+                new Feature({
+                    type: 'marker',
+                    vehicleId: vehicle.vehicleId,
+                    geometry: new Point(fromLonLat([vehicle.longitude, vehicle.latitude])),
+                    vehicle: vehicle,
+                }),
+            ],
+        }),
+        style: markerStyle,
+    });
+    return marker;
 }
 
 const markerStyle = new Style({

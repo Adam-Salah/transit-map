@@ -4,6 +4,8 @@ const _baseUrl: string = 'https://api.stm.info/pub/od/gtfs-rt/ic/v2/';
 const _apiKey: string = process.env.STM_KEY!;
 
 export interface VehicleInfo {
+    vehicleId: string;
+    routeId: string;
     latitude: number;
     longitude: number;
     speed: number;
@@ -83,6 +85,8 @@ export class StmRouter {
         decodedData.entity.forEach((entity) => {
             if (entity.vehicle) {
                 const vehicleData = {
+                    vehicleId: entity.vehicle.vehicle?.id,
+                    routeId: entity.vehicle.trip?.routeId,
                     latitude: entity.vehicle.position?.latitude,
                     longitude: entity.vehicle.position?.longitude,
                     speed: entity.vehicle.position?.speed,

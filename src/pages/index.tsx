@@ -5,6 +5,7 @@ import { VehicleInfo } from '@/app/lib/StmRouter';
 
 export default function Page() {
     const [vehicleData, setVehicleData] = useState<VehicleInfo[]>([]);
+    const [selectedVehicle, setSelectedVehicle] = useState<VehicleInfo>();
 
     useEffect(() => {
         fetch(process.env.REACT_APP_SERVER_URL + '/api/realtime/getVehiclePositions')
@@ -16,14 +17,14 @@ export default function Page() {
             fetch(process.env.REACT_APP_SERVER_URL + '/api/realtime/getVehiclePositions')
                 .then((response) => response.json())
                 .then((data) => setVehicleData(data.vehicleData));
-            console.log(vehicleData);
         }, 5000);
         return () => clearInterval(interval);
     }, []);
 
     return (
         <div>
-            <TransitMap vehicleData={vehicleData} />
+            <p>{selectedVehicle?.routeId}</p>
+            <TransitMap vehicleData={vehicleData} setSelectedVehicle={setSelectedVehicle} />
         </div>
     );
 }
