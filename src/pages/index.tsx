@@ -2,6 +2,7 @@
 import { useEffect, useReducer, useState } from 'react';
 import TransitMap from '../app/components/TransitMap';
 import { VehicleInfo } from '@/app/lib/StmRouter';
+import '../app/globals.css';
 
 export default function Page() {
     const [vehicleData, setVehicleData] = useState<VehicleInfo[]>([]);
