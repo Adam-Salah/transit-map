@@ -3,6 +3,7 @@ import { useEffect, useReducer, useState } from 'react';
 import TransitMap from '../app/components/TransitMap';
 import { VehicleInfo } from '@/app/lib/StmRouter';
 import '../app/globals.css';
+import InfoCard from '@/app/components/InfoCard';
 
 export default function Page() {
     const [vehicleData, setVehicleData] = useState<VehicleInfo[]>([]);
@@ -24,8 +25,8 @@ export default function Page() {
 
     return (
         <div>
-            <p>{selectedVehicle?.routeId}</p>
             <TransitMap vehicleData={vehicleData} setSelectedVehicle={setSelectedVehicle} />
+            <InfoCard selectedVehicle={selectedVehicle}/>
         </div>
     );
 }

@@ -1,3 +1,4 @@
+import { timeStamp } from 'console';
 import GtfsRealtimeBindings from 'gtfs-realtime-bindings';
 
 const _baseUrl: string = 'https://api.stm.info/pub/od/gtfs-rt/ic/v2/';
@@ -11,6 +12,9 @@ export interface VehicleInfo {
     speed: number;
     currentStatus: string;
     occupancyStatus: string;
+    stopId: string;
+    timeStamp: number;
+    direction: number;
 }
 
 export class StmRouter {
@@ -20,6 +24,7 @@ export class StmRouter {
 
     private constructor() {
         this._getVehicleData();
+        console.log('constructor called')
         setInterval(() => {
             this._getVehicleData();
         }, 10000);
@@ -92,6 +97,9 @@ export class StmRouter {
                     speed: entity.vehicle.position?.speed,
                     currentStatus: entity.vehicle.currentStatus,
                     occupancyStatus: entity.vehicle.occupancyStatus,
+                    stopId: entity.vehicle.stopId,
+                    timeStamp: Number(entity.vehicle.timestamp) * 1000,
+                    direction: entity.vehicle.trip?.directionId,
                 };
                 data.push(vehicleData);
             }
